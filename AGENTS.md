@@ -10,6 +10,7 @@ bd show <id>          # View issue details
 bd update <id> --status in_progress  # Claim work
 bd close <id>         # Complete work
 bd sync               # Sync with git
+bd dep tree <id>      # Show dependency tree for an issue
 ```
 
 ## Landing the Plane (Session Completion)
@@ -44,12 +45,6 @@ bd sync               # Sync with git
 
 This project builds ROS 2 packages using pixi. The workflow is:
 
-1. Build packages starting with foundational ones (ament_package, rcutils, etc.)
-2. When a build fails due to missing dependencies, identify the missing system library
-3. Add the missing dependency to `[target.linux-64.dependencies]` section of `pixi.toml`
-4. Retry the build and continue
-5. Track build status using beads issues
-
 ### Build Commands
 
 ```bash
@@ -60,19 +55,9 @@ pixi run build <package_name>
 PIXI_PARALLEL_WORKERS=8 pixi run build <package_name>
 ```
 
-### Adding Dependencies
+If on machine cubesat, use PIXI_PARALLEL_WORKERS=2 to not overload it. Otherwise, don't use the prefix and use all available cores.
 
-When builds fail due to missing system libraries:
-
-1. Identify the missing library from build error messages
-2. Add to `pixi.toml` under `[target.linux-64.dependencies]`
-3. Pin to specific versions for reproducibility
-4. Document the reason in comments or git commit message
-
-**Example dependencies added:**
-- `lttng-ust = "2.13.9"` - Required for tracetools package
-- `xorg-libxt = "1.3.0"` - Required for rviz_rendering (X11 Xt library)
-- `xorg-libxaw = "1.0.14"` - Required for rviz_rendering (X11 Xaw library)
+Build issues are tracked using beads issues. If missing dependencies are identified, add them to the `pixi.toml` under `[target.linux-64.dependencies]`. Pin to specific versions for reproducibility. The versions should be consistent with the timeline of other pinned versions, currently about the release time of Ubuntu 24.04.
 
 ### Important Constraints
 
@@ -84,5 +69,3 @@ When builds fail due to missing system libraries:
 
 - **Parallelism control**: MAKEFLAGS and CMAKE_BUILD_PARALLEL_LEVEL controlled by PIXI_PARALLEL_WORKERS environment variable
 - **GCC version**: Pinned to GCC 13.4 (Ubuntu 24.04 LTS timeline) for compatibility with mcap_vendor
-- **Pinned dependencies**: All Linux dependencies pinned to specific versions for reproducibility
-
