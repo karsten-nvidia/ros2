@@ -8,7 +8,7 @@ platforms = ["win-64", "linux-64"]
 
 [tasks]
 clone = { cmd = "vcs import --input https://raw.githubusercontent.com/ros2/ros2/rolling/ros2.repos src", outputs = [ "src/ros2/rcl/README.md"] }
-build = { cmd = """bash -c 'if [ -n "${PIXI_PARALLEL_WORKERS}" ]; then export CMAKE_BUILD_PARALLEL_LEVEL=$PIXI_PARALLEL_WORKERS MAKEFLAGS="-j$PIXI_PARALLEL_WORKERS"; fi; colcon build --symlink-install --ament-cmake-args -DCMAKE_EXPORT_COMPILE_COMMANDS=ON ${PIXI_PARALLEL_WORKERS:+--parallel-workers $PIXI_PARALLEL_WORKERS}{% if packages %} --packages-up-to {{ packages }}{% endif %}'""", args = [{arg = "packages", default = ""}], depends-on = ["clone"] }
+build = { cmd = """bash -c 'if [ -n "${PIXI_PARALLEL_WORKERS}" ]; then export CMAKE_BUILD_PARALLEL_LEVEL=$PIXI_PARALLEL_WORKERS MAKEFLAGS="-j$PIXI_PARALLEL_WORKERS"; fi; colcon build --symlink-install --ament-cmake-args -DCMAKE_EXPORT_COMPILE_COMMANDS=ON ${PIXI_PARALLEL_WORKERS:+--parallel-workers $PIXI_PARALLEL_WORKERS}{% if packages %} --packages-up-to {{ packages }}{% endif %}'""", clean-env = true, args = [{arg = "packages", default = ""}], depends-on = ["clone"] }
 compile-commands = { cmd = "compdb -p build list > compile_commands.json", args = [{arg = "packages", default = ""}], depends-on = [{task = "build", args = [{packages = "{{ packages }}"}]}] }
 list = { cmd = "colcon list --names-only", depends-on = ["clone"] }
 
@@ -134,6 +134,9 @@ zstd = "==1.5.6"
 compdb = "*"
 
 [target.linux-64.dependencies]
+bash = ">=5.2"
+coreutils = "*"
+make = "*"
 libacl = "==2.3.2"
 gcc_linux-64 = ">=13.2,<14"
 gxx_linux-64 = ">=13.2,<14"
