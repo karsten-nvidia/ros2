@@ -7,14 +7,15 @@ channels = ["conda-forge"]
 platforms = ["win-64", "linux-64"]
 
 [tasks]
-clone = { cmd = "vcs import --input ros2.repos src", outputs = [ "src/ros2/rcl/README.md"] }
-build = { cmd = "scripts/colcon_wrapper.py build {{ packages }}", clean-env = true, args = [{arg = "packages", default = ""}], depends-on = ["clone"] }
-test = { cmd = "scripts/colcon_wrapper.py test {{ packages }}", clean-env = true, args = [{arg = "packages", default = ""}], depends-on = [{task = "build", args = [{packages = "{{ packages }}"}]}] }
-test-up-to = { cmd = "scripts/colcon_wrapper.py test-up-to {{ packages }}", clean-env = true, args = [{arg = "packages", default = ""}], depends-on = [{task = "build", args = [{packages = "{{ packages }}"}]}] }
-compile-commands = { cmd = "compdb -p build list > compile_commands.json", args = [{arg = "packages", default = ""}], depends-on = [{task = "build", args = [{packages = "{{ packages }}"}]}] }
-list = { cmd = "colcon list --names-only", depends-on = ["clone"] }
-clean = { cmd = "rm -rf build install log" }
-distclean = { cmd = "scripts/distclean.py" }
+clone = { cmd = "vcs import --input ros2.repos src", description = "Clone ROS 2 source repositories", outputs = [ "src/ros2/rcl/README.md"] }
+pull = { cmd = "vcs pull src", description = "Pull latest changes from all source repositories", depends-on = ["clone"] }
+build = { cmd = "scripts/colcon_wrapper.py build {{ packages }}", description = "Build packages and their dependencies", clean-env = true, args = [{arg = "packages", default = ""}], depends-on = ["clone"] }
+test = { cmd = "scripts/colcon_wrapper.py test {{ packages }}", description = "Run tests for specific packages", clean-env = true, args = [{arg = "packages", default = ""}], depends-on = [{task = "build", args = [{packages = "{{ packages }}"}]}] }
+test-up-to = { cmd = "scripts/colcon_wrapper.py test-up-to {{ packages }}", description = "Test packages and their dependencies", clean-env = true, args = [{arg = "packages", default = ""}], depends-on = [{task = "build", args = [{packages = "{{ packages }}"}]}] }
+compile-commands = { cmd = "compdb -p build list > compile_commands.json", description = "Generate compile_commands.json for IDE integration", args = [{arg = "packages", default = ""}], depends-on = [{task = "build", args = [{packages = "{{ packages }}"}]}] }
+list = { cmd = "colcon list --names-only", description = "List all available packages", depends-on = ["clone"] }
+clean = { cmd = "rm -rf build install log", description = "Remove build artifacts" }
+distclean = { cmd = "scripts/distclean.py", description = "Clean build artifacts and source repositories" }
 
 [target.linux-64.activation.env]
 LDFLAGS="$LDFLAGS -L$CONDA_PREFIX/x86_64-conda-linux-gnu/sysroot/lib64 -Wl,--no-as-needed -lpthread"
