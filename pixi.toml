@@ -7,7 +7,7 @@ channels = ["conda-forge"]
 platforms = ["win-64", "linux-64"]
 
 [tasks]
-clone = { cmd = "vcs import --input https://raw.githubusercontent.com/ros2/ros2/rolling/ros2.repos src", outputs = [ "src/ros2/rcl/README.md"] }
+clone = { cmd = "vcs import --input ros2.repos src", outputs = [ "src/ros2/rcl/README.md"] }
 build = { cmd = "scripts/colcon_wrapper.py build {{ packages }}", clean-env = true, args = [{arg = "packages", default = ""}], depends-on = ["clone"] }
 test = { cmd = "scripts/colcon_wrapper.py test {{ packages }}", clean-env = true, args = [{arg = "packages", default = ""}], depends-on = [{task = "build", args = [{packages = "{{ packages }}"}]}] }
 test-up-to = { cmd = "scripts/colcon_wrapper.py test-up-to {{ packages }}", clean-env = true, args = [{arg = "packages", default = ""}], depends-on = [{task = "build", args = [{packages = "{{ packages }}"}]}] }
@@ -18,6 +18,7 @@ distclean = { cmd = "scripts/distclean.py" }
 
 [target.linux-64.activation.env]
 LDFLAGS="$LDFLAGS -L$CONDA_PREFIX/x86_64-conda-linux-gnu/sysroot/lib64 -Wl,--no-as-needed -lpthread"
+PYTHONPYCACHEPREFIX="$PIXI_PROJECT_ROOT/build/__pycache__"
 
 [target.win-64.activation.env]
 QT_QPA_PLATFORM_PLUGIN_PATH="%cd%\\.pixi\\envs\\default\\Library\\plugins\\platforms"
