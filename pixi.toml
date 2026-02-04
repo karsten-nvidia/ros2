@@ -8,10 +8,13 @@ platforms = ["win-64", "linux-64"]
 
 [tasks]
 clone = { cmd = "vcs import --input https://raw.githubusercontent.com/ros2/ros2/rolling/ros2.repos src", outputs = [ "src/ros2/rcl/README.md"] }
-build = { cmd = """bash -c 'if [ -n "${PIXI_PARALLEL_WORKERS}" ]; then export CMAKE_BUILD_PARALLEL_LEVEL=$PIXI_PARALLEL_WORKERS MAKEFLAGS="-j$PIXI_PARALLEL_WORKERS"; fi; colcon build --symlink-install --ament-cmake-args -DCMAKE_EXPORT_COMPILE_COMMANDS=ON ${PIXI_PARALLEL_WORKERS:+--parallel-workers $PIXI_PARALLEL_WORKERS}{% if packages %} --packages-up-to {{ packages }}{% endif %}'""", clean-env = true, args = [{arg = "packages", default = ""}], depends-on = ["clone"] }
-test = { cmd = """bash -c 'if [ -n "${PIXI_PARALLEL_WORKERS}" ]; then export CMAKE_BUILD_PARALLEL_LEVEL=$PIXI_PARALLEL_WORKERS MAKEFLAGS="-j$PIXI_PARALLEL_WORKERS"; fi; colcon test{% if packages %} --packages-select {{ packages }}{% endif %} ${PIXI_PARALLEL_WORKERS:+--parallel-workers $PIXI_PARALLEL_WORKERS} --event-handlers console_cohesion+'""", clean-env = true, args = [{arg = "packages", default = ""}], depends-on = [{task = "build", args = [{packages = "{{ packages }}"}]}] }
+build = { cmd = "scripts/colcon_wrapper.py build {{ packages }}", clean-env = true, args = [{arg = "packages", default = ""}], depends-on = ["clone"] }
+test = { cmd = "scripts/colcon_wrapper.py test {{ packages }}", clean-env = true, args = [{arg = "packages", default = ""}], depends-on = [{task = "build", args = [{packages = "{{ packages }}"}]}] }
+test-up-to = { cmd = "scripts/colcon_wrapper.py test-up-to {{ packages }}", clean-env = true, args = [{arg = "packages", default = ""}], depends-on = [{task = "build", args = [{packages = "{{ packages }}"}]}] }
 compile-commands = { cmd = "compdb -p build list > compile_commands.json", args = [{arg = "packages", default = ""}], depends-on = [{task = "build", args = [{packages = "{{ packages }}"}]}] }
 list = { cmd = "colcon list --names-only", depends-on = ["clone"] }
+clean = { cmd = "rm -rf build install log" }
+distclean = { cmd = "scripts/distclean.py" }
 
 [target.win-64.activation.env]
 QT_QPA_PLATFORM_PLUGIN_PATH="%cd%\\.pixi\\envs\\default\\Library\\plugins\\platforms"
