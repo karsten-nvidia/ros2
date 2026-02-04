@@ -5,10 +5,65 @@ import argparse
 import os
 import subprocess
 import sys
+from pathlib import Path
+
+
+def find_repo_root():
+    """Find the repository root by looking for .git or pixi.toml.
+
+    Returns:
+        Path to repository root, or None if not found
+    """
+    current = Path(__file__).parent.absolute()
+
+    # Walk up the directory tree
+    for parent in [current] + list(current.parents):
+        # Check for .git directory first
+        if (parent / '.git').exists():
+            return parent
+        # Then check for pixi.toml
+        if (parent / 'pixi.toml').exists():
+            return parent
+
+    return None
+
+
+def load_env_file(repo_root):
+    """Load environment variables from .env file if it exists.
+
+    Args:
+        repo_root: Path to the repository root directory
+    """
+    env_file = repo_root / '.env'
+    if not env_file.exists():
+        return
+
+    with open(env_file, 'r') as f:
+        for line in f:
+            line = line.strip()
+            # Skip empty lines and comments
+            if not line or line.startswith('#'):
+                continue
+            # Parse KEY=VALUE format
+            if '=' in line:
+                key, value = line.split('=', 1)
+                key = key.strip()
+                value = value.strip()
+                # Remove quotes if present
+                if value.startswith('"') and value.endswith('"'):
+                    value = value[1:-1]
+                elif value.startswith("'") and value.endswith("'"):
+                    value = value[1:-1]
+                os.environ[key] = value
 
 
 def main():
     """Main entry point for the colcon wrapper."""
+    # Load environment variables from .env file if it exists
+    repo_root = find_repo_root()
+    if repo_root:
+        load_env_file(repo_root)
+
     parser = argparse.ArgumentParser(description='Wrapper for colcon operations')
     parser.add_argument('command', choices=['build', 'test', 'test-up-to'],
                         help='Colcon command to run')

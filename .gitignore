@@ -13,3 +13,6 @@ src/*
 
 # bv (beads viewer) local config and caches
 .bv/
+
+# Local environment configuration (user-specific, not committed)
+.env
