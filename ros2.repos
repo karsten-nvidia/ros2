@@ -338,7 +338,7 @@ repositories:
   ros2/rosidl:
     type: git
     url: https://github.com/karsten-nvidia/rosidl.git
-    version: rolling-native-buffer
+    version: add-initializer-list-support
   ros2/rosidl_core:
     type: git
     url: https://github.com/ros2/rosidl_core.git
